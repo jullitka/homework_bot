@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 import requests
 import telegram
 
-import constants as c
-from exception import RequestException, ResponseException
+import constants
+from exception import RequestException, ResponseException, TelegramException
 
 load_dotenv()
 
@@ -64,9 +64,12 @@ def send_message(bot, message):
     """
     try:
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
+    except telegram.error.TelegramError:
+        # если убираю отсюда логер, пайтест не проходит
+        logger.error(constants.SEND_ERROR_TEXT)
+        raise TelegramException(constants.SEND_ERROR_TEXT)
+    else:
         logger.debug('Сообщение отправлено')
-    except Exception as error:
-        logger.error(f'Ошибка при отправке {error}')
 
 
 def get_api_answer(timestamp):
@@ -84,12 +87,12 @@ def get_api_answer(timestamp):
             params=params
         )
         if response.status_code != HTTPStatus.OK:
-            raise ResponseException(c.STATUS_CODE_ERROR_TEXT)
+            raise ResponseException(constants.STATUS_CODE_ERROR_TEXT)
         response = response.json()
     except json.JSONDecodeError:
-        raise json.JSONDecodeError(c.JSON_ERROR_TEXT)
+        raise json.JSONDecodeError(constants.JSON_ERROR_TEXT)
     except requests.RequestException:
-        raise RequestException(c.REQUEST_ERROR_TEXT)
+        raise RequestException(constants.REQUEST_ERROR_TEXT)
     return response
 
 
@@ -100,14 +103,14 @@ def check_response(response):
     приведенный к типам данных Python.
     """
     if type(response) is not dict:
-        raise TypeError(c.TYPE_ERROR_DICT_TEXT)
+        raise TypeError(constants.TYPE_ERROR_DICT_TEXT)
     if 'homeworks' not in response:
-        raise KeyError(c.KEY_HOMEWORKS_ERROR_TEXT)
+        raise KeyError(constants.KEY_HOMEWORKS_ERROR_TEXT)
     homeworks = response['homeworks']
     if type(homeworks) is not list:
-        raise TypeError(c.TYPE_ERROR_LIST_TEXT)
+        raise TypeError(constants.TYPE_ERROR_LIST_TEXT)
     if not homeworks:
-        raise IndexError(c.INDEX_ERROR_TEXT)
+        raise IndexError(constants.INDEX_ERROR_TEXT)
     return homeworks
 
 
@@ -120,27 +123,26 @@ def parse_status(homework):
     в Telegram строку, содержащую один из вердиктов словаря HOMEWORK_VERDICTS
     """
     if 'status' not in homework:
-        raise KeyError(c.KEY_ERROR_TEXT_STATUS)
+        raise KeyError(constants.KEY_ERROR_TEXT_STATUS)
     if 'homework_name' not in homework:
-        raise KeyError(c.KEY_ERROR_TEXT_HOMEWORK_NAME)
+        raise KeyError(constants.KEY_ERROR_TEXT_HOMEWORK_NAME)
     status = homework['status']
     homework_name = homework['homework_name']
     if status not in HOMEWORK_VERDICTS:
-        raise KeyError(c.KEY_ERROR_TEXT_VERDICT)
+        raise KeyError(constants.KEY_ERROR_TEXT_VERDICT)
     verdict = HOMEWORK_VERDICTS[status]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
 def main():
     """Основная логика работы бота."""
-    if check_tokens():
-        bot = telegram.Bot(token=TELEGRAM_TOKEN)
-        timestamp = int(time.time())
-        last_message = ''
-        last_error = ''
-    else:
-        logger.critical(c.TOKENS_ERROR_TEXT)
-        raise ValueError(c.TOKENS_ERROR_TEXT)
+    if not check_tokens():
+        logger.critical(constants.TOKENS_ERROR_TEXT)
+        raise ValueError(constants.TOKENS_ERROR_TEXT)
+    bot = telegram.Bot(token=TELEGRAM_TOKEN)
+    timestamp = int(time.time())
+    last_message = ''
+    last_error = ''
 
     while True:
         try:

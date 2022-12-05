@@ -19,3 +19,5 @@ KEY_ERROR_TEXT_STATUS = 'Отсутствует ключ "status"'
 KEY_ERROR_TEXT_HOMEWORK_NAME = 'Отсутствует ключ "homework_name"'
 
 KEY_ERROR_TEXT_VERDICT = 'Неизвестный статус проверки'
+
+SEND_ERROR_TEXT = 'Ошибка при отправке'
