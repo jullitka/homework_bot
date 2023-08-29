@@ -1,5 +1,5 @@
 # homework_bot
-Телеграм - бот обращается к API сервису Практикум.Домашка и узнаёт статус проверки проекта ревьером: взят ли он на проверку, проверен ли и результат проверки.
+Телеграм - бот обращается к API сервису Практикум.Домашка и каждый 10 минут запрашивает статус проверки проекта ревьером: взят ли он на проверку, проверен ли и результат проверки.
 
 ## Технологии
 [![Python](https://img.shields.io/badge/-Python-464646?style=flat-square&logo=Python)](https://www.python.org/)
@@ -37,12 +37,14 @@ pip install -r requirements.txt
 Создать в корневой директории проекта файл .env со следующими переменными окружения:
 
 ```
-PRAKTIKUM_TOKEN = 'xxx'
-TELEGRAM_TOKEN = 'xxx'
-TELEGRAM_CHAT_ID = 'xxx'
+PRAKTIKUM_TOKEN = 'example'
+TELEGRAM_TOKEN = 'example'
+TELEGRAM_CHAT_ID = 'example'
 ```
 
 Запустить проект:
 ```
 python homework_bot.py
 ```
+## Авторы
+[Юлия Пашкова](https://github.com/Jullitka)
